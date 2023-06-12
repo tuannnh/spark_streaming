@@ -120,9 +120,9 @@ services:
     ports:
       - "5432:5432"
 
-  volumes:
-    postgres-db:
-      driver: local
+volumes:
+  postgres-db:
+    driver: local
 
 ```
 - Run command
