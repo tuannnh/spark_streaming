@@ -52,59 +52,78 @@ sudo apt install docker-compose
 #### 4 & 5. Install Apache Kafka and Apache Spark
 - Prepare a docker file
 ```yaml
-version: '3'
+version: "3"
 services:
+  # ----------------- #
+  #   Apache Spark    #
+  # ----------------- #
 
-# ----------------- #
-# Apache Spark #
-# ----------------- #
+  spark:
+    image: docker.io/bitnami/spark:3.3
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "8080:8080"
+      - "4040:4040"
+      - "7077:7077"
+    volumes:
+      - ./data:/data
+      - ./src:/src
+  spark-worker:
+    image: docker.io/bitnami/spark:3.3
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=4G
+      - SPARK_EXECUTOR_MEMORY=4G
+      - SPARK_WORKER_CORES=4
+    volumes:
+      - ./data:/data
+      - ./src:/src
 
-	spark:
-		image: docker.io/bitnami/spark:3.3
-		container_name: spark-master
-		environment:
-		- SPARK_MODE=master
-		ports:
-		- '8080:8080'
-		- '4040:4040'
-		- '7077:7077'
-		volumes:
-		- ./data:/data
-		- ./src:/src
-	spark-worker:
-		image: docker.io/bitnami/spark:3.3
-		container_name: spark-worker
-		environment:
-		- SPARK_MODE=worker
-		- SPARK_MASTER_URL=spark://spark:7077
-		- SPARK_WORKER_MEMORY=4G
-		- SPARK_EXECUTOR_MEMORY=4G
-		- SPARK_WORKER_CORES=4
-		volumes:
-		- ./data:/data
-		- ./src:/src
-  
-# ----------------- #
-# Apache Kafka #
-# ----------------- #
+  # ----------------- #
+  #    Apache Kafka   #
+  # ----------------- #
 
-	zookeeper:
-		image: docker.io/bitnami/zookeeper:3.8
-		container_name: zookeeper
-		ports:
-		- "2181:2181"
-		environment:
-		- ALLOW_ANONYMOUS_LOGIN=yes
-	kafka:
-		image: docker.io/bitnami/kafka:3.3
-		container_name: kafka
-		ports:
-		- "9092:9092"
-		environment:
-		- KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-		- ALLOW_PLAINTEXT_LISTENER=yes
-		depends_on:
-		- zookeeper
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3.8
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: docker.io/bitnami/kafka:3.3
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+
+  # ----------------- #
+  #     PostgreSQL    #
+  # ----------------- #
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres
+    volumes:
+      - postgres-db:/data/postgres
+    ports:
+      - "5432:5432"
+
+  volumes:
+    postgres-db:
+      driver: local
+
 ```
 - Run command
 ```shell
