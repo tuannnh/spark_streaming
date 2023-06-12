@@ -53,7 +53,6 @@ sudo apt install docker-compose
 - Prepare a docker file
 ```yaml
 version: '3'
-
 services:
 
 # ----------------- #
